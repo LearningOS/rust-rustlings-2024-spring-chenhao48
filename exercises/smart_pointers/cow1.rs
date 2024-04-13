@@ -12,7 +12,6 @@
 //
 // Execute `rustlings hint cow1` or use the `hint` watch subcommand for a hint.
 
-// I AM NOT DONE
 
 use std::borrow::Cow;
 
@@ -32,47 +31,38 @@ mod tests {
     use super::*;
 
     #[test]
-    fn reference_mutation() -> Result<(), &'static str> {
+    fn reference_mutation() {
         // Clone occurs because `input` needs to be mutated.
         let slice = [-1, 0, 1];
         let mut input = Cow::from(&slice[..]);
-        match abs_all(&mut input) {
-            Cow::Owned(_) => Ok(()),
-            _ => Err("Expected owned value"),
-        }
+        assert!(matches!(abs_all(&mut input), Cow::Owned(_)));
     }
 
     #[test]
-    fn reference_no_mutation() -> Result<(), &'static str> {
+    fn reference_no_mutation() {
         // No clone occurs because `input` doesn't need to be mutated.
         let slice = [0, 1, 2];
         let mut input = Cow::from(&slice[..]);
-        match abs_all(&mut input) {
-            // TODO
-        }
+        assert!(matches!(abs_all(&mut input), Cow::Borrowed(_)));
     }
 
     #[test]
-    fn owned_no_mutation() -> Result<(), &'static str> {
+    fn owned_no_mutation() {
         // We can also pass `slice` without `&` so Cow owns it directly. In this
         // case no mutation occurs and thus also no clone, but the result is
         // still owned because it was never borrowed or mutated.
         let slice = vec![0, 1, 2];
         let mut input = Cow::from(slice);
-        match abs_all(&mut input) {
-            // TODO
-        }
+        assert!(matches!(abs_all(&mut input), Cow::Owned(_)));
     }
 
     #[test]
-    fn owned_mutation() -> Result<(), &'static str> {
-        // Of course this is also the case if a mutation does occur. In this
-        // case the call to `to_mut()` returns a reference to the same data as
+    fn owned_mutation() {
+        // Of course, this is also the case if a mutation does occur. In this
+        // case, the call to `to_mut()` returns a reference to the same data as
         // before.
         let slice = vec![-1, 0, 1];
         let mut input = Cow::from(slice);
-        match abs_all(&mut input) {
-            // TODO
-        }
+        assert!(matches!(abs_all(&mut input), Cow::Owned(_)));
     }
 }

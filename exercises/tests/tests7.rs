@@ -33,11 +33,20 @@
 //
 // Execute `rustlings hint tests7` or use the `hint` watch subcommand for a
 // hint.
+fn main() {
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    
+    let test_foo = std::env::var("TEST_FOO").expect("TEST_FOO environment variable not set");
+    let test_foo_value: u64 = test_foo.parse().expect("Failed to parse TEST_FOO as u64");
 
-// I AM NOT DONE
-
-fn main() {}
-
+    // Check if the test_foo_value falls within the expected range
+    if !(timestamp >= test_foo_value && timestamp < test_foo_value + 10) {
+        panic!("TEST_FOO value is not within the expected range relative to the current timestamp");
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
