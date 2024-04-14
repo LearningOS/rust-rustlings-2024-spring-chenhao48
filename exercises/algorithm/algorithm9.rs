@@ -2,13 +2,12 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 use std::cmp::Ord;
 use std::default::Default;
 
 pub struct Heap<T>
 where
-    T: Default,
+    T: Default + PartialOrd + PartialEq + Eq,
 {
     count: usize,
     items: Vec<T>,
@@ -17,7 +16,7 @@ where
 
 impl<T> Heap<T>
 where
-    T: Default,
+    T: Default + PartialOrd + PartialEq + Eq,
 {
     pub fn new(comparator: fn(&T, &T) -> bool) -> Self {
         Self {
@@ -38,7 +37,14 @@ where
     pub fn add(&mut self, value: T) {
         self.items.push(value);
         self.count += 1;
-        self.bubble_up(self.count);
+        self.heapify_up(self.count);
+    }
+
+    fn heapify_up(&mut self, mut idx: usize) {
+        while idx > 1 && (self.comparator)(&self.items[idx], &self.items[self.parent_idx(idx)]) {
+            self.items.swap(idx, self.parent_idx(idx));
+            idx = self.parent_idx(idx);
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -60,28 +66,35 @@ where
     fn smallest_child_idx(&self, idx: usize) -> usize {
         let left_idx = self.left_child_idx(idx);
         let right_idx = self.right_child_idx(idx);
-
         if right_idx <= self.count && (self.comparator)(&self.items[right_idx], &self.items[left_idx]) {
             right_idx
         } else {
             left_idx
         }
     }
+}
 
-    fn bubble_up(&mut self, mut idx: usize) {
-        let parent_idx = self.parent_idx(idx);
-        while idx > 1 && (self.comparator)(&self.items[idx], &self.items[parent_idx]) {
-            self.items.swap(idx, parent_idx);
-            idx = parent_idx;
-        }
+impl<T> Heap<T>
+where
+T: Default + PartialOrd + PartialEq + Eq + Ord,{
+    /// Create a new MinHeap
+    pub fn new_min() -> Self {
+        Self::new(|a, b| a < b)
     }
 
-    fn bubble_down(&mut self, mut idx: usize) {
+    /// Create a new MaxHeap
+    pub fn new_max() -> Self {
+        Self::new(|a, b| a > b)
+    }
+
+    fn bubble_down(&mut self, mut idx: usize) 
+    where
+    T: Ord,{
         while self.children_present(idx) {
-            let smallest_child_idx = self.smallest_child_idx(idx);
-            if (self.comparator)(&self.items[smallest_child_idx], &self.items[idx]) {
-                self.items.swap(smallest_child_idx, idx);
-                idx = smallest_child_idx;
+            let child_idx = self.smallest_child_idx(idx);
+            if (self.comparator)(&self.items[child_idx], &self.items[idx]) {
+                self.items.swap(child_idx, idx);
+                idx = child_idx;
             } else {
                 break;
             }
@@ -91,7 +104,7 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + PartialOrd + PartialEq + Eq,
 {
     type Item = T;
 
@@ -99,28 +112,20 @@ where
         if self.is_empty() {
             return None;
         }
-        self.items.swap(1, self.count);
-        let root = self.items.pop();
+        let root = self.items.swap_remove(1);
         self.count -= 1;
-        if self.count > 0 {
-            self.bubble_down(1);
-        }
-        root
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.len(), Some(self.len()))
+        self.bubble_down(1);
+        Some(root)
     }
 }
-
-impl<T> ExactSizeIterator for Heap<T> where T: Default {}
 
 pub struct MinHeap;
 
 impl MinHeap {
+    #[allow(clippy::new_ret_no_self)]
     pub fn new<T>() -> Heap<T>
     where
-        T: Default + Ord,
+        T: Default + Ord + PartialOrd + PartialEq + Eq,
     {
         Heap::new(|a, b| a < b)
     }
@@ -129,9 +134,10 @@ impl MinHeap {
 pub struct MaxHeap;
 
 impl MaxHeap {
+    #[allow(clippy::new_ret_no_self)]
     pub fn new<T>() -> Heap<T>
     where
-        T: Default + Ord,
+        T: Default + Ord + PartialOrd + PartialEq + Eq,
     {
         Heap::new(|a, b| a > b)
     }
